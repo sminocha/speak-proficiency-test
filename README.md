@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Speak Proficiency Assessment Prototype
+
+A functional, interactive language proficiency exam prototype that demonstrates a slice of what Speak might sell to employers for grading employee English proficiency.
+
+## Features
+
+### 🎯 Examinee Welcome Page
+- Professional welcome interface with personalized greeting
+- System check simulation (microphone and camera detection)
+- Clean, intuitive design with clear call-to-action
+
+### 📝 Interactive Assessment Module
+Four different question types to test various English proficiency skills:
+
+1. **Email Response (Writing)**
+   - Professional email composition task
+   - Tests business writing, tone, and clarity
+   - 150-200 word target length
+
+2. **Summarize Text (Reading & Writing)**
+   - Article comprehension and summarization
+   - Tests reading comprehension and synthesis skills
+   - 3-4 sentence summary requirement
+
+3. **Dictation (Listening & Typing)**
+   - Audio playback with text-to-speech
+   - Tests listening accuracy for professional vocabulary
+   - Exact transcription required
+
+4. **Spoken Response (Speaking - Simulation)**
+   - 30-second recording simulation
+   - Tests coherent, structured spoken communication
+   - Interview scenario-based prompts
+
+### 🤖 AI Grading System
+- Structured rubric with four criteria:
+  - **Fluency & Cohesion**: Structure and flow assessment
+  - **Lexical Resource**: Vocabulary precision and variety
+  - **Grammatical Range & Accuracy**: Grammar command evaluation
+  - **Task Achievement**: Prompt fulfillment analysis
+- 1-5 scoring scale for each criterion
+- Contextual feedback generation
+- JSON-formatted results
+
+## Technology Stack
+
+- **Framework**: Next.js 15 with TypeScript
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Audio**: Web Speech API (text-to-speech)
+- **API**: Next.js API Routes
 
 ## Getting Started
 
-First, run the development server:
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+2. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Open your browser**:
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── api/grade/          # AI grading API endpoint
+│   ├── layout.tsx          # Root layout
+│   └── page.tsx           # Main application entry
+├── components/
+│   ├── WelcomePage.tsx    # Examinee welcome interface
+│   └── AssessmentModule.tsx # Interactive test component
+└── globals.css            # Global styles
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage Flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Welcome Page**: Employee sees personalized welcome with system checks
+2. **Question Selection**: Choose from four different question types
+3. **Response Input**: Complete the selected assessment task
+4. **AI Grading**: Submit for instant feedback and scoring
+5. **Results Review**: View detailed rubric scores and feedback
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Future Enhancements
 
-## Learn More
+- Integration with Vercel AI SDK for production LLM calls
+- Real speech-to-text for spoken responses
+- User authentication and session management
+- Employer dashboard for test creation and results
+- Advanced analytics and reporting
+- Multi-language support
 
-To learn more about Next.js, take a look at the following resources:
+## API Integration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The grading system is designed to easily integrate with production LLM APIs. The current implementation includes:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Structured prompt engineering for consistent evaluation
+- Fallback mechanisms for API failures
+- Extensible rubric system
+- JSON response formatting
 
-## Deploy on Vercel
+To integrate with a production LLM service, update the `/api/grade` endpoint with your preferred AI service (OpenAI, Anthropic, etc.).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This is a prototype project for demonstration purposes.

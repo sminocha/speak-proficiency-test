@@ -140,7 +140,7 @@ As AI technology continues to evolve, experts predict even greater integration i
       case 'speaking':
         return (
           <div>
-            <p className="mb-4">You are in a job interview. The interviewer asks: "Can you tell me about a time you had to handle a difficult colleague?" Prepare a brief, 30-second response. Click 'Record' to begin.</p>
+            <p className="mb-4">You are in a job interview. The interviewer asks: &ldquo;Can you tell me about a time you had to handle a difficult colleague?&rdquo; Prepare a brief, 30-second response. Click &lsquo;Record&rsquo; to begin.</p>
             <button
               onClick={handleStartRecording}
               disabled={isRecording}
@@ -167,7 +167,7 @@ As AI technology continues to evolve, experts predict even greater integration i
           ) : recordingTime > 0 ? (
             <p className="text-green-600 font-medium">Recording completed ({recordingTime} seconds)</p>
           ) : (
-            <p className="text-gray-500">Click 'Record' to start your response</p>
+            <p className="text-gray-500">Click &lsquo;Record&rsquo; to start your response</p>
           )}
         </div>
       );

@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 async function simulateAIGrading(
   userResponse: string, 
   questionType: string, 
-  prompt: string
+  _prompt: string
 ): Promise<GradingResponse> {
   // Simulate processing time
   await new Promise(resolve => setTimeout(resolve, 1500));
@@ -132,7 +132,7 @@ function generateFeedback(
   grammar: number, 
   task: number, 
   questionType: string,
-  wordCount: number
+  _wordCount: number
 ): string {
   const feedbacks = [];
 

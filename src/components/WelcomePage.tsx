@@ -12,7 +12,7 @@ export default function WelcomePage({ employeeName, onBeginAssessment }: Welcome
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            You've been invited to take the Speak Proficiency Assessment.
+            You&rsquo;ve been invited to take the Speak Proficiency Assessment.
           </h1>
         </div>
 

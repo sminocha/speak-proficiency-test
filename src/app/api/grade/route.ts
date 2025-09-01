@@ -1,17 +1,178 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { generateText, streamText } from 'ai';
+import { createGateway } from '@ai-sdk/gateway';
+import { GradingRequest, GradingResponse, LLMResponse } from '@/types/grading';
+import { modelConfig, defaultGradingModel } from '@/lib/models';
 
-interface GradingRequest {
-  userResponse: string;
-  questionType: string;
-  prompt: string;
+// Vercel AI Gateway configuration
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY,
+  baseURL: 'https://ai-gateway.vercel.sh/v1/ai',
+});
+
+async function gradeWithAI(
+  userResponse: string,
+  questionType: string,
+  prompt: string
+): Promise<GradingResponse> {
+  const startTime = Date.now();
+  let firstTokenTime: number | null = null;
+  
+  try {
+    const config = modelConfig[defaultGradingModel];
+    
+    const gradingPrompt = createGradingPrompt(userResponse, questionType, prompt);
+    
+    const result = await streamText({
+      model: gateway(config.gatewayId),
+      prompt: gradingPrompt,
+      maxOutputTokens: 800,
+      temperature: 0.3, // Lower temperature for more consistent grading
+    });
+
+    let fullResponse = '';
+    let tokenCount = 0;
+    
+    // Process the stream to get the response
+    for await (const chunk of result.textStream) {
+      if (firstTokenTime === null && chunk.length > 0) {
+        firstTokenTime = Date.now();
+        console.log(`First token arrived after ${firstTokenTime - startTime}ms`);
+      }
+      
+      fullResponse += chunk;
+      tokenCount += Math.ceil(chunk.length / 4);
+    }
+    
+    const endTime = Date.now();
+    
+    if (firstTokenTime === null) {
+      firstTokenTime = endTime;
+    }
+    
+    // Get usage data if available
+    const usage = await result.usage;
+    if (usage?.totalTokens) {
+      tokenCount = usage.totalTokens;
+    }
+    
+    console.log(`AI grading completed in ${endTime - startTime}ms with ${tokenCount} tokens`);
+    
+    // Parse the AI response into structured grades
+    return parseAIGradingResponse(fullResponse);
+    
+  } catch (error) {
+    console.error('Error calling AI for grading:', error);
+    throw error; // Re-throw to trigger fallback in POST handler
+  }
 }
 
-interface GradingResponse {
-  fluency: number;
-  lexical: number;
-  grammar: number;
-  task: number;
-  feedback: string;
+function createGradingPrompt(userResponse: string, questionType: string, originalPrompt: string): string {
+  const basePrompt = `
+You are an expert English language assessor evaluating business English proficiency. 
+Evaluate the following response using a 5-point scale (1=Poor, 2=Below Average, 3=Average, 4=Good, 5=Excellent).
+
+ORIGINAL TASK: "${originalPrompt}"
+QUESTION TYPE: ${questionType}
+USER RESPONSE: "${userResponse}"
+
+Evaluate on these criteria:
+
+1. FLUENCY (1-5): Natural flow, rhythm, and ease of expression
+   - Consider sentence variety, transitions, and overall coherence
+   - Look for natural-sounding English without awkward phrasing
+
+2. LEXICAL RESOURCE (1-5): Vocabulary range and appropriateness
+   - Assess word choice, professional vocabulary usage
+   - Consider precision and variety of language
+
+3. GRAMMAR (1-5): Grammatical accuracy and complexity
+   - Check sentence structure, verb tenses, articles
+   - Consider both accuracy and range of structures used
+
+4. TASK ACHIEVEMENT (1-5): How well the response addresses the specific requirements
+`;
+
+  // Add task-specific criteria
+  let taskSpecificCriteria = '';
+  if (questionType === 'email') {
+    taskSpecificCriteria = `
+   For EMAIL tasks, check if the response includes:
+   - Appropriate greeting and closing
+   - Clear explanation of the issue/situation
+   - Professional tone and register
+   - All required information addressed`;
+  } else if (questionType === 'summarize') {
+    taskSpecificCriteria = `
+   For SUMMARY tasks, check if the response:
+   - Captures main points accurately
+   - Uses appropriate length (concise but complete)
+   - Demonstrates understanding of key concepts
+   - Uses own words rather than copying text`;
+  } else if (questionType === 'dictation') {
+    taskSpecificCriteria = `
+   For DICTATION tasks, check:
+   - Accuracy of transcription
+   - Correct spelling and punctuation
+   - Proper capitalization
+   - Complete sentences captured`;
+  }
+
+  const outputFormat = `
+${taskSpecificCriteria}
+
+Provide your assessment in this EXACT format:
+FLUENCY: [score 1-5]
+LEXICAL: [score 1-5]
+GRAMMAR: [score 1-5]
+TASK: [score 1-5]
+FEEDBACK: [2-3 sentences of specific, constructive feedback highlighting strengths and areas for improvement]
+
+Be precise with scoring - use the full 1-5 range appropriately.`;
+
+  return basePrompt + outputFormat;
+}
+
+function parseAIGradingResponse(aiResponse: string): GradingResponse {
+  try {
+    // Extract scores using regex patterns
+    const fluencyMatch = aiResponse.match(/FLUENCY:\s*(\d+(?:\.\d+)?)/i);
+    const lexicalMatch = aiResponse.match(/LEXICAL:\s*(\d+(?:\.\d+)?)/i);
+    const grammarMatch = aiResponse.match(/GRAMMAR:\s*(\d+(?:\.\d+)?)/i);
+    const taskMatch = aiResponse.match(/TASK:\s*(\d+(?:\.\d+)?)/i);
+    const feedbackMatch = aiResponse.match(/FEEDBACK:\s*([\s\S]+?)(?:\n\n|$)/i);
+    
+    // Parse scores with validation
+    const fluency = Math.min(5, Math.max(1, fluencyMatch ? parseFloat(fluencyMatch[1]) : 3));
+    const lexical = Math.min(5, Math.max(1, lexicalMatch ? parseFloat(lexicalMatch[1]) : 3));
+    const grammar = Math.min(5, Math.max(1, grammarMatch ? parseFloat(grammarMatch[1]) : 3));
+    const task = Math.min(5, Math.max(1, taskMatch ? parseFloat(taskMatch[1]) : 3));
+    
+    let feedback = feedbackMatch ? feedbackMatch[1].trim() : 'Assessment completed successfully.';
+    
+    // Clean up feedback - remove any remaining formatting artifacts
+    feedback = feedback.replace(/^[\[\]"']+|[\[\]"']+$/g, '').trim();
+    
+    return {
+      fluency: Math.round(fluency * 2) / 2, // Round to nearest 0.5
+      lexical: Math.round(lexical * 2) / 2,
+      grammar: Math.round(grammar * 2) / 2,
+      task: Math.round(task * 2) / 2,
+      feedback
+    };
+  } catch (error) {
+    console.error('Error parsing AI grading response:', error);
+    console.log('Raw AI response:', aiResponse);
+    
+    // Return fallback scores if parsing fails
+    return {
+      fluency: 3,
+      lexical: 3,
+      grammar: 3,
+      task: 3,
+      feedback: 'Unable to parse detailed assessment. Please try again.'
+    };
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -25,17 +186,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, we'll simulate the AI grading with a more sophisticated mock
-    // In production, this would call your LLM API with the specific rubric
-    const gradingResult = await simulateAIGrading(userResponse, questionType, prompt);
+    // Use AI grading with actual LLM
+    const gradingResult = await gradeWithAI(userResponse, questionType, prompt);
 
     return NextResponse.json(gradingResult);
   } catch (error) {
     console.error('Grading error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    // Fallback to mock grading if AI fails
+    console.log('AI grading failed, falling back to mock grading');
+    try {
+      const { userResponse: fallbackUserResponse, questionType: fallbackQuestionType, prompt: fallbackPrompt } = await request.json();
+      const fallbackResult = await simulateAIGrading(fallbackUserResponse, fallbackQuestionType, fallbackPrompt);
+      return NextResponse.json(fallbackResult);
+    } catch (fallbackError) {
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
   }
 }
 

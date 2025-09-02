@@ -112,7 +112,7 @@ As AI technology continues to evolve, experts predict even greater integration i
   const getPromptForQuestion = () => {
     switch (selectedQuestion) {
       case 'email':
-        return "You are a project manager. Your team has missed an important deadline for a client, 'Global Innovations Inc.' Write a professional email (150-200 words) to the client. You need to apologize, briefly explain the reason for the delay (a technical issue), and provide a new, confident delivery date for this Friday.";
+        return "You are a project manager. Your team has missed an important deadline for a client, &apos;Global Innovations Inc.&apos; Write a professional email (150-200 words) to the client. You need to apologize, briefly explain the reason for the delay (a technical issue), and provide a new, confident delivery date for this Friday.";
       
       case 'summarize':
         return (

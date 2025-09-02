@@ -125,7 +125,7 @@ export default function ExamResultPage({ result, employeeName, onReturnToWelcome
         <div className="bg-green-50 rounded-lg p-6">
           <h3 className="font-semibold text-gray-900 mb-3">What happens next?</h3>
           <ul className="text-gray-700 space-y-2 text-sm">
-            <li>• Your results have been automatically saved to your company's admin portal</li>
+            <li>• Your results have been automatically saved to your company&apos;s admin portal</li>
             <li>• Your HR team will be notified of your completed assessment</li>
             <li>• You may receive a digital certificate via email within 24 hours</li>
             <li>• For questions about your results, contact your HR department</li>

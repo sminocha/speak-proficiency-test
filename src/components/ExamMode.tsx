@@ -275,7 +275,7 @@ As AI technology continues to evolve, experts predict even greater integration i
           ) : currentQuestion.isRecorded ? (
             <p className="text-green-600 font-medium">Recording completed (30 seconds)</p>
           ) : (
-            <p className="text-gray-500">Click 'Record' to start your response</p>
+            <p className="text-gray-500">Click &apos;Record&apos; to start your response</p>
           )}
         </div>
       );

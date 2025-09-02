@@ -3,9 +3,10 @@ import { CheckCircle } from 'lucide-react';
 interface WelcomePageProps {
   employeeName: string;
   onBeginAssessment: () => void;
+  onFreePractice: () => void;
 }
 
-export default function WelcomePage({ employeeName, onBeginAssessment }: WelcomePageProps) {
+export default function WelcomePage({ employeeName, onBeginAssessment, onFreePractice }: WelcomePageProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-2xl w-full bg-white rounded-xl shadow-xl p-8 space-y-8 border border-gray-100">
@@ -41,14 +42,29 @@ export default function WelcomePage({ employeeName, onBeginAssessment }: Welcome
           </div>
         </div>
 
-        {/* Begin Assessment Button */}
-        <div className="pt-6">
+        {/* Action Buttons */}
+        <div className="pt-6 space-y-4">
           <button
             onClick={onBeginAssessment}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg text-xl transition-colors duration-200 shadow-md hover:shadow-lg"
           >
             Begin Assessment
           </button>
+          
+          <div className="text-center">
+            <span className="text-gray-500 text-sm">or</span>
+          </div>
+          
+          <button
+            onClick={onFreePractice}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+          >
+            Free Practice
+          </button>
+          
+          <p className="text-sm text-gray-600 text-center">
+            Practice with sample questions without official scoring
+          </p>
         </div>
 
         {/* Footer Note */}

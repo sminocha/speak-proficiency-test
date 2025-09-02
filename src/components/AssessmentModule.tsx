@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, Mic, MicOff } from 'lucide-react';
+import { Play, Mic, MicOff, ArrowLeft } from 'lucide-react';
 
 type QuestionType = 'email' | 'summarize' | 'dictation' | 'speaking';
 
@@ -13,7 +13,11 @@ interface GradingResult {
   feedback: string;
 }
 
-export default function AssessmentModule() {
+interface AssessmentModuleProps {
+  onBackToExam?: () => void;
+}
+
+export default function AssessmentModule({ onBackToExam }: AssessmentModuleProps) {
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionType>('email');
   const [userResponse, setUserResponse] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -190,12 +194,60 @@ As AI technology continues to evolve, experts predict even greater integration i
     return userResponse.trim().length > 0;
   };
 
+  // Rating Component with color coding
+  const RatingDisplay = ({ score, maxScore = 5 }: { score: number; maxScore?: number }) => {
+    const roundedScore = Math.round(score);
+    
+    // Color coding based on score quality
+    const getColorClasses = () => {
+      if (roundedScore >= 4) return 'from-green-500 to-green-600'; // Excellent: 4-5
+      if (roundedScore >= 3) return 'from-orange-400 to-orange-500'; // Good: 3
+      return 'from-red-400 to-red-500'; // Needs improvement: 1-2
+    };
+    
+    const colorClasses = getColorClasses();
+    
+    return (
+      <div className="flex items-center space-x-1">
+        {[...Array(maxScore)].map((_, index) => {
+          const isFilled = index < roundedScore;
+          
+          return (
+            <div key={index} className="relative w-3 h-3">
+              {/* Background circle */}
+              <div className="w-3 h-3 rounded-full bg-gray-200"></div>
+              
+              {/* Filled circle with color-coded gradient */}
+              {isFilled && (
+                <div className={`absolute inset-0 w-3 h-3 rounded-full bg-gradient-to-r ${colorClasses}`}></div>
+              )}
+            </div>
+          );
+        })}
+        <span className="ml-2 text-sm font-medium text-gray-600">
+          {roundedScore}/5
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Interactive Assessment Module</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-gray-900">Choose a Category to Practice</h1>
+            {onBackToExam && (
+              <button
+                onClick={onBackToExam}
+                className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Exam</span>
+              </button>
+            )}
+          </div>
           
           {/* Question Type Selector */}
           <div className="flex flex-wrap gap-2">
@@ -254,22 +306,46 @@ As AI technology continues to evolve, experts predict even greater integration i
         {gradingResult && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Assessment Results</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{gradingResult.fluency}/5</div>
-                <div className="text-sm text-gray-600">Fluency & Cohesion</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="flex flex-col space-y-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-medium text-gray-900">Fluency & Cohesion</div>
+                  <div className="mt-1 mb-2">
+                    <RatingDisplay score={gradingResult.fluency} />
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    How smoothly ideas flow and connect together
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-medium text-gray-900">Lexical Resource</div>
+                  <div className="mt-1 mb-2">
+                    <RatingDisplay score={gradingResult.lexical} />
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    Range and accuracy of vocabulary usage
+                  </div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{gradingResult.lexical}/5</div>
-                <div className="text-sm text-gray-600">Lexical Resource</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{gradingResult.grammar}/5</div>
-                <div className="text-sm text-gray-600">Grammar</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{gradingResult.task}/5</div>
-                <div className="text-sm text-gray-600">Task Achievement</div>
+              <div className="flex flex-col space-y-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-medium text-gray-900">Grammar</div>
+                  <div className="mt-1 mb-2">
+                    <RatingDisplay score={gradingResult.grammar} />
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    Sentence structure and grammatical accuracy
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-medium text-gray-900">Task Achievement</div>
+                  <div className="mt-1 mb-2">
+                    <RatingDisplay score={gradingResult.task} />
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    How well the response addresses the prompt
+                  </div>
+                </div>
               </div>
             </div>
             <div className="bg-blue-50 rounded-lg p-4">

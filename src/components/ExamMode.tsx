@@ -378,7 +378,7 @@ As AI technology continues to evolve, experts predict even greater integration i
                   key={index}
                   className={`w-3 h-3 rounded-full ${
                     index < currentQuestionIndex
-                      ? 'bg-green-500'
+                      ? 'bg-blue-300'
                       : index === currentQuestionIndex
                       ? 'bg-blue-500'
                       : 'bg-gray-200'
